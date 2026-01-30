@@ -69,11 +69,11 @@ void render_clear(Renderer* renderer) {
 static void draw_cell(WINDOW* win, int y, int x, int color) {
     if (color > 0 && color <= 7) {
         wattron(win, COLOR_PAIR(color));
-        mvwprintw(win, y, x, "██");
+        mvwprintw(win, y, x, "[]");
         wattroff(win, COLOR_PAIR(color));
     } else {
-        /* Empty cell - draw dark blocks */
-        mvwprintw(win, y, x, "··");
+        /* Empty cell - two spaces */
+        mvwprintw(win, y, x, "  ");
     }
 }
 
@@ -106,7 +106,7 @@ void render_draw_game(Renderer* renderer, const Game* game) {
                     /* Draw ghost with dim color */
                     if (color > 0 && color <= 7) {
                         wattron(renderer->game_win, COLOR_PAIR(color) | A_DIM);
-                        mvwprintw(renderer->game_win, py + 1, px * 2 + 1, "[]");
+                        mvwprintw(renderer->game_win, py + 1, px * 2 + 1, "..");
                         wattroff(renderer->game_win, COLOR_PAIR(color) | A_DIM);
                     }
                 }
@@ -151,7 +151,7 @@ void render_draw_stats(Renderer* renderer, const Game* game) {
 
             if (next_color > 0 && next_color <= 7) {
                 wattron(renderer->next_win, COLOR_PAIR(next_color));
-                mvwprintw(renderer->next_win, py, px, "██");
+                mvwprintw(renderer->next_win, py, px, "[]");
                 wattroff(renderer->next_win, COLOR_PAIR(next_color));
             }
         }
@@ -250,10 +250,10 @@ void render_draw_game_over(Renderer* renderer, const Game* game) {
 
 /* Refresh display (call once per frame) */
 void render_refresh(Renderer* renderer) {
-    wrefresh(renderer->game_win);
-    wrefresh(renderer->stats_win);
-    wrefresh(renderer->next_win);
-    refresh();
+    wnoutrefresh(renderer->game_win);
+    wnoutrefresh(renderer->stats_win);
+    wnoutrefresh(renderer->next_win);
+    doupdate();
 }
 
 /* Cleanup ncurses */
