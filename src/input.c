@@ -50,6 +50,12 @@ InputAction input_poll(void) {
         case 'Q':
             return INPUT_QUIT;
 
+        case '\n':
+        case '\r':
+        case KEY_ENTER:
+            /* Enter key for starting game from start screen */
+            return INPUT_START;
+
         default:
             /* Unrecognized key - treat as no input */
             return INPUT_NONE;

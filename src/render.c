@@ -142,6 +142,48 @@ void render_draw_stats(Renderer* renderer, const Game* game) {
     mvwprintw(renderer->stats_win, stats_y + 7, 2, "%d", game->lines_cleared);
 }
 
+/* Draw start screen with level selection */
+void render_draw_start_screen(Renderer* renderer, int selected_level) {
+    int center_y = BOARD_DISPLAY_HEIGHT / 2 - 5;
+    int center_x = BOARD_DISPLAY_WIDTH / 2;
+
+    /* Draw title */
+    mvwprintw(renderer->game_win, center_y, center_x - 5, "N T R I S");
+    mvwprintw(renderer->game_win, center_y + 2, center_x - 9, "NES-style Tetris");
+
+    /* Draw controls */
+    mvwprintw(renderer->game_win, center_y + 5, center_x - 9, "CONTROLS");
+    mvwprintw(renderer->game_win, center_y + 6, 2, "Arrows: Move/Rotate");
+    mvwprintw(renderer->game_win, center_y + 7, 2, "Space:  Hard Drop");
+    mvwprintw(renderer->game_win, center_y + 8, 2, "P:      Pause");
+    mvwprintw(renderer->game_win, center_y + 9, 2, "Q:      Quit");
+
+    /* Draw level selection */
+    mvwprintw(renderer->game_win, center_y + 12, center_x - 9, "SELECT LEVEL (1-10)");
+
+    /* Draw level options with highlight */
+    int levels_per_row = 5;
+    int level_start_y = center_y + 14;
+    for (int level = 1; level <= 10; level++) {
+        int row = (level - 1) / levels_per_row;
+        int col = (level - 1) % levels_per_row;
+        int y = level_start_y + row;
+        int x = center_x - 9 + (col * 4);
+
+        if (level == selected_level) {
+            /* Highlight selected level */
+            wattron(renderer->game_win, A_REVERSE);
+            mvwprintw(renderer->game_win, y, x, "[%2d]", level);
+            wattroff(renderer->game_win, A_REVERSE);
+        } else {
+            mvwprintw(renderer->game_win, y, x, " %2d ", level);
+        }
+    }
+
+    /* Draw start instruction */
+    mvwprintw(renderer->game_win, center_y + 17, center_x - 9, "Press ENTER to start");
+}
+
 /* Draw pause overlay */
 void render_draw_pause(Renderer* renderer) {
     int center_y = BOARD_DISPLAY_HEIGHT / 2;

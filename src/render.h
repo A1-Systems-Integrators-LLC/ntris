@@ -24,6 +24,9 @@ void render_draw_game(Renderer* renderer, const Game* game);
 /* Draw UI panels (score, level, lines, next piece preview) */
 void render_draw_stats(Renderer* renderer, const Game* game);
 
+/* Draw start screen with level selection */
+void render_draw_start_screen(Renderer* renderer, int selected_level);
+
 /* Draw pause overlay */
 void render_draw_pause(Renderer* renderer);
 

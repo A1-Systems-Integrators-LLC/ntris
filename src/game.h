@@ -7,6 +7,7 @@
 
 /* Game state enumeration */
 typedef enum {
+    GAME_STATE_START_SCREEN,
     GAME_STATE_PLAYING,
     GAME_STATE_PAUSED,
     GAME_STATE_GAME_OVER
@@ -37,8 +38,11 @@ typedef struct {
     bool is_on_ground;  /* Track if piece is currently grounded */
 } Game;
 
-/* Initialize new game with first piece */
+/* Initialize new game (starts at start screen) */
 void game_init(Game* game);
+
+/* Set starting level (1-10) and begin game from start screen */
+void game_set_starting_level(Game* game, int level);
 
 /* Spawn next piece at top-center (returns false if game over) */
 bool game_spawn_piece(Game* game);

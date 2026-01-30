@@ -16,7 +16,8 @@ typedef enum {
     INPUT_ROTATE,
     INPUT_HARD_DROP,
     INPUT_PAUSE,
-    INPUT_QUIT
+    INPUT_QUIT,
+    INPUT_START
 } InputAction;
 
 /**

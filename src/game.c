@@ -28,13 +28,13 @@ static const int LINE_CLEAR_SCORES[] = {
     800   /* 4 lines (Tetris!) */
 };
 
-/* Initialize new game */
+/* Initialize new game (starts at start screen) */
 void game_init(Game* game) {
     /* Initialize board */
     board_init(&game->board);
 
-    /* Set initial state */
-    game->state = GAME_STATE_PLAYING;
+    /* Set initial state to start screen */
+    game->state = GAME_STATE_START_SCREEN;
 
     /* Initialize stats */
     game->score = 0;
@@ -49,14 +49,30 @@ void game_init(Game* game) {
     /* Seed random number generator */
     srand((unsigned int)time(NULL));
 
-    /* Generate first two pieces */
+    /* Generate first two pieces (but don't spawn yet) */
     game->current_piece = (PieceType)(rand() % PIECE_COUNT);
     game->next_piece = (PieceType)(rand() % PIECE_COUNT);
     game->current_rotation = ROT_0;
     game->piece_x = SPAWN_X;
     game->piece_y = SPAWN_Y;
+}
 
-    /* Check if spawn position is blocked (shouldn't happen on init) */
+/* Set starting level and begin game from start screen */
+void game_set_starting_level(Game* game, int level) {
+    /* Clamp level to valid range (1-10) */
+    if (level < 1) {
+        level = 1;
+    } else if (level > 10) {
+        level = 10;
+    }
+
+    /* Set the starting level */
+    game->level = level;
+
+    /* Transition from start screen to playing state */
+    game->state = GAME_STATE_PLAYING;
+
+    /* Check if spawn position is valid */
     if (board_check_collision(&game->board, game->current_piece,
                               game->current_rotation, game->piece_x, game->piece_y)) {
         game->state = GAME_STATE_GAME_OVER;
