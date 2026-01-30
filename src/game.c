@@ -341,3 +341,20 @@ double game_get_gravity_speed(const Game* game) {
 
     return speed;
 }
+
+/* Get ghost piece Y position (hard drop simulation) */
+int game_get_ghost_y(const Game* game) {
+    if (game->state != GAME_STATE_PLAYING) {
+        return game->piece_y;
+    }
+
+    /* Simulate hard drop - find lowest valid Y position */
+    int ghost_y = game->piece_y;
+    while (!board_check_collision(&game->board, game->current_piece,
+                                  game->current_rotation,
+                                  game->piece_x, ghost_y + 1)) {
+        ghost_y++;
+    }
+
+    return ghost_y;
+}

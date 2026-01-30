@@ -75,4 +75,7 @@ PieceType game_get_next_piece(const Game* game);
 /* Get gravity speed in seconds per row (level-dependent) */
 double game_get_gravity_speed(const Game* game);
 
+/* Get ghost piece Y position (where current piece will land) */
+int game_get_ghost_y(const Game* game);
+
 #endif /* GAME_H */
