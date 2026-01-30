@@ -146,7 +146,7 @@ void render_draw_stats(Renderer* renderer, const Game* game) {
         int offset_y = 3;  /* Vertical centering */
 
         for (int i = 0; i < 4; i++) {
-            int px = next_shape->cells[i][0] + offset_x;
+            int px = next_shape->cells[i][0] * 2 + offset_x;
             int py = next_shape->cells[i][1] + offset_y;
 
             if (next_color > 0 && next_color <= 7) {
