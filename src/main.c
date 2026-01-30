@@ -128,7 +128,8 @@ int main(int argc, char** argv) {
 
     /* Main game loop - runs until quit requested */
     while (!should_quit) {
-        /* Start frame timing */
+        /* Compute delta time BEFORE resetting frame timer */
+        double delta = timer_get_delta(&timer);
         timer_start_frame(&timer);
 
         /* INPUT PHASE: Poll keyboard and map to game actions */
@@ -137,7 +138,6 @@ int main(int argc, char** argv) {
 
         /* UPDATE PHASE: Update game state with delta time */
         if (!game_is_paused(&game) && game.state != GAME_STATE_START_SCREEN) {
-            double delta = timer_get_delta(&timer);
             game_update(&game, delta);
         }
 
