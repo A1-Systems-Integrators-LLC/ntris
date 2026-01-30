@@ -91,9 +91,10 @@ bool game_spawn_piece(Game* game) {
     /* Generate new next piece */
     game->next_piece = (PieceType)(rand() % PIECE_COUNT);
 
-    /* Reset ground state */
+    /* Reset timing state for new piece */
     game->is_on_ground = false;
     game->lock_delay_timer = 0.0;
+    game->gravity_timer = 0.0;
 
     /* Check if spawn position is valid */
     if (board_check_collision(&game->board, game->current_piece,
