@@ -40,6 +40,7 @@ void game_init(Game* game) {
     game->score = 0;
     game->level = 1;
     game->lines_cleared = 0;
+    game->session_high_score = 0;
 
     /* Initialize timers */
     game->gravity_timer = 0.0;
@@ -104,6 +105,13 @@ bool game_spawn_piece(Game* game) {
     return true;
 }
 
+/* Update session high score if current score exceeds it */
+static void update_high_score(Game* game) {
+    if (game->score > game->session_high_score) {
+        game->session_high_score = game->score;
+    }
+}
+
 /* Lock current piece and handle line clearing */
 static void lock_and_clear(Game* game) {
     /* Lock piece into board */
@@ -115,6 +123,7 @@ static void lock_and_clear(Game* game) {
     if (lines > 0) {
         game->lines_cleared += lines;
         game->score += LINE_CLEAR_SCORES[lines] * game->level;
+        update_high_score(game);
 
         /* Check for level up */
         game->level = 1 + (game->lines_cleared / LINES_PER_LEVEL);
@@ -227,6 +236,7 @@ bool game_move_down(Game* game) {
                                game->current_rotation, game->piece_x, new_y)) {
         game->piece_y = new_y;
         game->score += 1;  /* Award 1 point for soft drop */
+        update_high_score(game);
         game->is_on_ground = false;
         game->lock_delay_timer = 0.0;
         return true;
@@ -285,6 +295,7 @@ void game_hard_drop(Game* game) {
 
     /* Award points for hard drop (2 points per row) */
     game->score += drop_distance * 2;
+    update_high_score(game);
 
     /* Lock piece immediately */
     lock_and_clear(game);
@@ -322,6 +333,11 @@ int game_get_level(const Game* game) {
 /* Get total lines cleared */
 int game_get_lines(const Game* game) {
     return game->lines_cleared;
+}
+
+/* Get session high score */
+int game_get_session_high_score(const Game* game) {
+    return game->session_high_score;
 }
 
 /* Get next piece for preview */

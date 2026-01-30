@@ -31,6 +31,7 @@ typedef struct {
     int score;
     int level;
     int lines_cleared;
+    int session_high_score;  /* Highest score this session (not persisted) */
 
     /* Timing state */
     double gravity_timer;
@@ -70,6 +71,7 @@ bool game_is_paused(const Game* game);
 int game_get_score(const Game* game);
 int game_get_level(const Game* game);
 int game_get_lines(const Game* game);
+int game_get_session_high_score(const Game* game);
 PieceType game_get_next_piece(const Game* game);
 
 /* Get gravity speed in seconds per row (level-dependent) */
