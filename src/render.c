@@ -1,0 +1,190 @@
+#include "render.h"
+#include <string.h>
+
+/* Window layout constants */
+#define BOARD_DISPLAY_WIDTH (BOARD_WIDTH * 2)  /* Each cell is 2 chars wide */
+#define BOARD_DISPLAY_HEIGHT BOARD_HEIGHT
+#define STATS_PANEL_WIDTH 20
+#define NEXT_PIECE_HEIGHT 8
+
+/* Initialize ncurses and create windows */
+void render_init(Renderer* renderer) {
+    /* Initialize ncurses */
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(0);  /* Hide cursor */
+
+    /* Initialize colors */
+    if (has_colors()) {
+        start_color();
+
+        /* Define color pairs (1-7 for pieces, matching piece.c colors) */
+        init_pair(1, COLOR_CYAN, COLOR_BLACK);    /* I piece */
+        init_pair(2, COLOR_YELLOW, COLOR_BLACK);  /* O piece */
+        init_pair(3, COLOR_MAGENTA, COLOR_BLACK); /* T piece */
+        init_pair(4, COLOR_GREEN, COLOR_BLACK);   /* S piece */
+        init_pair(5, COLOR_RED, COLOR_BLACK);     /* Z piece */
+        init_pair(6, COLOR_BLUE, COLOR_BLACK);    /* J piece */
+        init_pair(7, COLOR_WHITE, COLOR_BLACK);   /* L piece (orange approximated as white) */
+
+        /* Store color pairs */
+        for (int i = 0; i < 8; i++) {
+            renderer->color_pairs[i] = i;
+        }
+    }
+
+    /* Calculate window positions (center game board) */
+    int start_y = (LINES - BOARD_DISPLAY_HEIGHT - 2) / 2;  /* -2 for borders */
+    int start_x = (COLS - BOARD_DISPLAY_WIDTH - STATS_PANEL_WIDTH - 6) / 2;  /* -6 for borders */
+
+    /* Create game board window */
+    renderer->game_win = newwin(BOARD_DISPLAY_HEIGHT + 2, BOARD_DISPLAY_WIDTH + 2,
+                                start_y, start_x);
+    box(renderer->game_win, 0, 0);
+
+    /* Create stats window (to the right of game board) */
+    renderer->stats_win = newwin(BOARD_DISPLAY_HEIGHT + 2, STATS_PANEL_WIDTH,
+                                 start_y, start_x + BOARD_DISPLAY_WIDTH + 3);
+    box(renderer->stats_win, 0, 0);
+
+    /* Create next piece preview window (top of stats panel) */
+    renderer->next_win = newwin(NEXT_PIECE_HEIGHT, STATS_PANEL_WIDTH - 2,
+                                start_y + 1, start_x + BOARD_DISPLAY_WIDTH + 4);
+    box(renderer->next_win, 0, 0);
+}
+
+/* Clear screen */
+void render_clear(Renderer* renderer) {
+    werase(renderer->game_win);
+    werase(renderer->stats_win);
+    werase(renderer->next_win);
+    box(renderer->game_win, 0, 0);
+    box(renderer->stats_win, 0, 0);
+    box(renderer->next_win, 0, 0);
+}
+
+/* Helper function to draw a cell with color */
+static void draw_cell(WINDOW* win, int y, int x, int color) {
+    if (color > 0 && color <= 7) {
+        wattron(win, COLOR_PAIR(color));
+        mvwprintw(win, y, x, "██");
+        wattroff(win, COLOR_PAIR(color));
+    } else {
+        /* Empty cell - draw dark blocks */
+        mvwprintw(win, y, x, "··");
+    }
+}
+
+/* Draw entire game board with current piece */
+void render_draw_game(Renderer* renderer, const Game* game) {
+    /* Draw locked pieces from board */
+    for (int y = 0; y < BOARD_HEIGHT; y++) {
+        for (int x = 0; x < BOARD_WIDTH; x++) {
+            int cell = board_get_cell(&game->board, x, y);
+            draw_cell(renderer->game_win, y + 1, x * 2 + 1, cell);
+        }
+    }
+
+    /* Draw current piece if game is playing */
+    if (game->state == GAME_STATE_PLAYING) {
+        const PieceShape* shape = piece_get_shape(game->current_piece,
+                                                   game->current_rotation);
+        int color = piece_get_color(game->current_piece);
+
+        for (int i = 0; i < 4; i++) {
+            int px = game->piece_x + shape->cells[i][0];
+            int py = game->piece_y + shape->cells[i][1];
+
+            /* Only draw if within board bounds */
+            if (px >= 0 && px < BOARD_WIDTH && py >= 0 && py < BOARD_HEIGHT) {
+                draw_cell(renderer->game_win, py + 1, px * 2 + 1, color);
+            }
+        }
+    }
+}
+
+/* Draw UI panels (score, level, lines, next piece preview) */
+void render_draw_stats(Renderer* renderer, const Game* game) {
+    /* Draw next piece preview */
+    mvwprintw(renderer->next_win, 0, 2, "NEXT");
+
+    if (game->state != GAME_STATE_GAME_OVER) {
+        const PieceShape* next_shape = piece_get_shape(game->next_piece, ROT_0);
+        int next_color = piece_get_color(game->next_piece);
+
+        /* Center the next piece in preview window */
+        int offset_x = 6;  /* Horizontal centering */
+        int offset_y = 3;  /* Vertical centering */
+
+        for (int i = 0; i < 4; i++) {
+            int px = next_shape->cells[i][0] + offset_x;
+            int py = next_shape->cells[i][1] + offset_y;
+
+            if (next_color > 0 && next_color <= 7) {
+                wattron(renderer->next_win, COLOR_PAIR(next_color));
+                mvwprintw(renderer->next_win, py, px, "██");
+                wattroff(renderer->next_win, COLOR_PAIR(next_color));
+            }
+        }
+    }
+
+    /* Draw stats below next piece preview */
+    int stats_y = NEXT_PIECE_HEIGHT + 2;
+    mvwprintw(renderer->stats_win, stats_y, 2, "SCORE");
+    mvwprintw(renderer->stats_win, stats_y + 1, 2, "%d", game->score);
+
+    mvwprintw(renderer->stats_win, stats_y + 3, 2, "LEVEL");
+    mvwprintw(renderer->stats_win, stats_y + 4, 2, "%d", game->level);
+
+    mvwprintw(renderer->stats_win, stats_y + 6, 2, "LINES");
+    mvwprintw(renderer->stats_win, stats_y + 7, 2, "%d", game->lines_cleared);
+}
+
+/* Draw pause overlay */
+void render_draw_pause(Renderer* renderer) {
+    int center_y = BOARD_DISPLAY_HEIGHT / 2;
+    int center_x = BOARD_DISPLAY_WIDTH / 2;
+
+    /* Draw pause message centered on game board */
+    mvwprintw(renderer->game_win, center_y, center_x - 3, "PAUSED");
+    mvwprintw(renderer->game_win, center_y + 2, center_x - 7, "Press P to resume");
+}
+
+/* Draw game over screen with final score */
+void render_draw_game_over(Renderer* renderer, int final_score) {
+    int center_y = BOARD_DISPLAY_HEIGHT / 2;
+    int center_x = BOARD_DISPLAY_WIDTH / 2;
+
+    /* Draw game over message centered on game board */
+    mvwprintw(renderer->game_win, center_y - 2, center_x - 5, "GAME OVER");
+    mvwprintw(renderer->game_win, center_y, center_x - 6, "Final Score:");
+    mvwprintw(renderer->game_win, center_y + 1, center_x - 3, "%d", final_score);
+    mvwprintw(renderer->game_win, center_y + 3, center_x - 7, "Press Q to quit");
+}
+
+/* Refresh display (call once per frame) */
+void render_refresh(Renderer* renderer) {
+    wrefresh(renderer->game_win);
+    wrefresh(renderer->stats_win);
+    wrefresh(renderer->next_win);
+    refresh();
+}
+
+/* Cleanup ncurses */
+void render_cleanup(Renderer* renderer) {
+    if (renderer->game_win) {
+        delwin(renderer->game_win);
+        renderer->game_win = NULL;
+    }
+    if (renderer->stats_win) {
+        delwin(renderer->stats_win);
+        renderer->stats_win = NULL;
+    }
+    if (renderer->next_win) {
+        delwin(renderer->next_win);
+        renderer->next_win = NULL;
+    }
+    endwin();
+}
