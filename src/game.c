@@ -347,15 +347,29 @@ PieceType game_get_next_piece(const Game* game) {
 
 /* Calculate gravity speed based on level */
 double game_get_gravity_speed(const Game* game) {
-    /* Formula: 0.8 - ((level - 1) * 0.007) seconds per row */
-    double speed = 0.8 - ((game->level - 1) * 0.007);
+    /* NES Tetris gravity speeds (frames @ 60fps converted to seconds/row) */
+    static const double GRAVITY_SPEEDS[10] = {
+        0.800,  /* Level 1:  48 frames */
+        0.717,  /* Level 2:  43 frames */
+        0.633,  /* Level 3:  38 frames */
+        0.550,  /* Level 4:  33 frames */
+        0.467,  /* Level 5:  28 frames */
+        0.383,  /* Level 6:  23 frames */
+        0.300,  /* Level 7:  18 frames */
+        0.217,  /* Level 8:  13 frames */
+        0.133,  /* Level 9:   8 frames */
+        0.100   /* Level 10:  6 frames */
+    };
 
-    /* Clamp to minimum speed to prevent negative values at high levels */
-    if (speed < 0.05) {
-        speed = 0.05;
+    /* Clamp level to valid array bounds (1-10 -> index 0-9) */
+    int index = game->level - 1;
+    if (index < 0) {
+        index = 0;
+    } else if (index > 9) {
+        index = 9;
     }
 
-    return speed;
+    return GRAVITY_SPEEDS[index];
 }
 
 /* Get ghost piece Y position (hard drop simulation) */
