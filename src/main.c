@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
 
         /* Draw game over screen if game ended */
         if (game_is_over(&game)) {
-            render_draw_game_over(&renderer, game_get_score(&game));
+            render_draw_game_over(&renderer, &game);
         }
 
         render_refresh(&renderer);

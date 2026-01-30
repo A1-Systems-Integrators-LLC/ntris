@@ -27,8 +27,8 @@ void render_draw_stats(Renderer* renderer, const Game* game);
 /* Draw pause overlay */
 void render_draw_pause(Renderer* renderer);
 
-/* Draw game over screen with final score */
-void render_draw_game_over(Renderer* renderer, int final_score);
+/* Draw game over screen with final score and high score status */
+void render_draw_game_over(Renderer* renderer, const Game* game);
 
 /* Refresh display (call once per frame) */
 void render_refresh(Renderer* renderer);
