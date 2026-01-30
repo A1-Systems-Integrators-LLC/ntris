@@ -87,6 +87,33 @@ void render_draw_game(Renderer* renderer, const Game* game) {
         }
     }
 
+    /* Draw ghost piece if game is playing */
+    if (game->state == GAME_STATE_PLAYING) {
+        int ghost_y = game_get_ghost_y(game);
+
+        /* Only draw ghost if it's different from current piece position */
+        if (ghost_y != game->piece_y) {
+            const PieceShape* shape = piece_get_shape(game->current_piece,
+                                                       game->current_rotation);
+            int color = piece_get_color(game->current_piece);
+
+            for (int i = 0; i < 4; i++) {
+                int px = game->piece_x + shape->cells[i][0];
+                int py = ghost_y + shape->cells[i][1];
+
+                /* Only draw if within board bounds */
+                if (px >= 0 && px < BOARD_WIDTH && py >= 0 && py < BOARD_HEIGHT) {
+                    /* Draw ghost with dim color */
+                    if (color > 0 && color <= 7) {
+                        wattron(renderer->game_win, COLOR_PAIR(color) | A_DIM);
+                        mvwprintw(renderer->game_win, py + 1, px * 2 + 1, "[]");
+                        wattroff(renderer->game_win, COLOR_PAIR(color) | A_DIM);
+                    }
+                }
+            }
+        }
+    }
+
     /* Draw current piece if game is playing */
     if (game->state == GAME_STATE_PLAYING) {
         const PieceShape* shape = piece_get_shape(game->current_piece,
