@@ -1,0 +1,7 @@
+# Compiled test binaries
+test_sound
+test_*
+!test_*.c
+
+# Object files
+*.o
