@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <locale.h>
 #include "timing.h"
 #include "input.h"
 #include "game.h"
@@ -101,6 +102,9 @@ static void handle_input(Game* game, InputAction action, bool* should_quit, int*
  * Main entry point
  */
 int main(int argc, char** argv) {
+    /* Initialize locale for UTF-8 support */
+    setlocale(LC_ALL, "");
+
     /* Handle --version flag */
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
